@@ -7,6 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({
+      token: "da4c33f5e20b48efacf8627274290cbf"
+    });
+  </script>
+
   <style>
     button {
       margin: 3px;
@@ -94,6 +101,47 @@
   </main>
 
   <script>
+    // ---------------------------------------------------------------------------
+    // Custom error hierarchy
+    // ---------------------------------------------------------------------------
+
+    // Base class — attaches the raw expression to every calculator error so the
+    // catch block always has context without having to re-read the DOM.
+    class CalculationError extends Error {
+      constructor(message, firstNum, operator, secondNum) {
+        super(message);
+        this.name = 'CalculationError';
+        this.expression = `${firstNum} ${operator} ${secondNum}`;
+      }
+    }
+
+    // Thrown when one or both inputs cannot be parsed as a number.
+    class InvalidInputError extends CalculationError {
+      constructor(firstNum, operator, secondNum) {
+        super(
+          `"${firstNum}" and "${secondNum}" are not both valid numbers.`,
+          firstNum, operator, secondNum
+        );
+        this.name = 'InvalidInputError';
+      }
+    }
+
+    // Thrown specifically for division by zero so the catch block can give a
+    // more targeted message than a generic calculation failure.
+    class DivisionByZeroError extends CalculationError {
+      constructor(firstNum, secondNum) {
+        super(
+          `Cannot divide ${firstNum} by zero.`,
+          firstNum, '/', secondNum
+        );
+        this.name = 'DivisionByZeroError';
+      }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Calculator
+    // ---------------------------------------------------------------------------
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -104,15 +152,14 @@
         let secondNum = document.querySelector('#second-num').value.trim();
         let operator = document.querySelector('#operator').value;
 
-        // Validate inputs — throw descriptive errors rather than letting eval silently produce NaN
         if (firstNum === '' || secondNum === '') {
           throw new Error('Both number fields are required.');
         }
         if (isNaN(firstNum) || isNaN(secondNum)) {
-          throw new TypeError(`Expected numbers but got: "${firstNum}" and "${secondNum}".`);
+          throw new InvalidInputError(firstNum, operator, secondNum);
         }
         if (operator === '/' && Number(secondNum) === 0) {
-          throw new RangeError('Division by zero is not allowed.');
+          throw new DivisionByZeroError(firstNum, secondNum);
         }
 
         let result = eval(`${firstNum} ${operator} ${secondNum}`);
@@ -125,12 +172,20 @@
         historyList.appendChild(item);
 
       } catch (err) {
-        // Show the error message in the output element so the user knows what went wrong
-        output.innerHTML = `Error: ${err.message}`;
-        console.error(`[${err.name}]`, err.message);
+        // Use instanceof to tailor the response to each specific error type.
+        if (err instanceof DivisionByZeroError) {
+          output.innerHTML = `Math error: ${err.message}`;
+          console.error(`[${err.name}] Expression: "${err.expression}" —`, err.message);
+        } else if (err instanceof InvalidInputError) {
+          output.innerHTML = `Input error: ${err.message}`;
+          console.error(`[${err.name}] Expression: "${err.expression}" —`, err.message);
+        } else {
+          // Catches built-in errors (e.g. TypeError from missing #history element)
+          output.innerHTML = `Error: ${err.message}`;
+          console.error(`[${err.name}]`, err.message);
+        }
 
       } finally {
-        // Runs whether the calculation succeeded or failed — useful for cleanup or analytics
         console.log('Calculation attempt finished. Inputs preserved in form.');
       }
     });
@@ -220,9 +275,15 @@
       console.trace('Console Trace demo');
     });
 
-    // Trigger a Global Error
+    // Trigger a Global Error — caught locally to log, then re-thrown so it
+    // bubbles up to window.onerror and gets captured by TrackJS
     errorBtns[14].addEventListener('click', () => {
-      null.property;
+      try {
+        throw new CalculationError('Uncaught global error triggered intentionally', '', '', '');
+      } catch (err) {
+        console.log('Global error caught before re-throwing:', err);
+        throw err;
+      }
     });
   </script>
 </body>
