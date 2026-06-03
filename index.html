@@ -102,6 +102,91 @@
 
     // Start your code here
     // You may move this JS to another file if you wish
+
+    const sampleData = { name: 'Ada Lovelace', role: 'Programmer', year: 1843 };
+
+    // Console Log
+    errorBtns[0].addEventListener('click', () => {
+      console.log('Console Log demo:', sampleData);
+    });
+
+    // Console Error
+    errorBtns[1].addEventListener('click', () => {
+      console.error('Console Error demo: something went wrong!', sampleData);
+    });
+
+    // Console Count
+    errorBtns[2].addEventListener('click', () => {
+      console.count('button-clicks');
+    });
+
+    // Console Warn
+    errorBtns[3].addEventListener('click', () => {
+      console.warn('Console Warn demo: this is a warning', sampleData);
+    });
+
+    // Console Assert
+    errorBtns[4].addEventListener('click', () => {
+      console.assert(1 === 2, 'Console Assert demo: assertion failed — 1 does not equal 2');
+    });
+
+    // Console Clear
+    errorBtns[5].addEventListener('click', () => {
+      console.clear();
+    });
+
+    // Console Dir
+    errorBtns[6].addEventListener('click', () => {
+      console.dir(document.querySelector('form'));
+    });
+
+    // Console dirxml
+    errorBtns[7].addEventListener('click', () => {
+      console.dirxml(document.querySelector('form'));
+    });
+
+    // Console Group Start
+    errorBtns[8].addEventListener('click', () => {
+      console.group('Demo Group');
+      console.log('Inside the group — name:', sampleData.name);
+      console.log('Inside the group — role:', sampleData.role);
+    });
+
+    // Console Group End
+    errorBtns[9].addEventListener('click', () => {
+      console.groupEnd();
+    });
+
+    // Console Table
+    errorBtns[10].addEventListener('click', () => {
+      const tableData = [
+        { name: 'Ada Lovelace',   role: 'Programmer',     year: 1843 },
+        { name: 'Alan Turing',    role: 'Computer Scientist', year: 1936 },
+        { name: 'Grace Hopper',   role: 'Compiler Pioneer', year: 1952 },
+      ];
+      console.table(tableData);
+    });
+
+    // Start Timer
+    errorBtns[11].addEventListener('click', () => {
+      console.time('demo-timer');
+      console.log('Timer started — press "End Timer" to stop it.');
+    });
+
+    // End Timer
+    errorBtns[12].addEventListener('click', () => {
+      console.timeEnd('demo-timer');
+    });
+
+    // Console Trace
+    errorBtns[13].addEventListener('click', () => {
+      console.trace('Console Trace demo');
+    });
+
+    // Trigger a Global Error
+    errorBtns[14].addEventListener('click', () => {
+      null.property;
+    });
   </script>
 </body>
 
