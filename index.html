@@ -68,6 +68,12 @@
       </fieldset>
     </form>
 
+    <fieldset>
+      <legend>Calculation History</legend>
+      <!-- Comment out the line below to trigger a TypeError in the try block -->
+      <ul id="history"></ul>
+    </fieldset>
+
     <section id="error-btns">
       <button>Console Log</button>
       <button>Console Error</button>
@@ -92,10 +98,41 @@
     form.addEventListener('submit', e => {
       e.preventDefault();
       let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        let firstNum = document.querySelector('#first-num').value.trim();
+        let secondNum = document.querySelector('#second-num').value.trim();
+        let operator = document.querySelector('#operator').value;
+
+        // Validate inputs — throw descriptive errors rather than letting eval silently produce NaN
+        if (firstNum === '' || secondNum === '') {
+          throw new Error('Both number fields are required.');
+        }
+        if (isNaN(firstNum) || isNaN(secondNum)) {
+          throw new TypeError(`Expected numbers but got: "${firstNum}" and "${secondNum}".`);
+        }
+        if (operator === '/' && Number(secondNum) === 0) {
+          throw new RangeError('Division by zero is not allowed.');
+        }
+
+        let result = eval(`${firstNum} ${operator} ${secondNum}`);
+        output.innerHTML = result;
+
+        // Append to history — comment out <ul id="history"> in the HTML to trigger a TypeError here
+        let historyList = document.querySelector('#history');
+        let item = document.createElement('li');
+        item.textContent = `${firstNum} ${operator} ${secondNum} = ${result}`;
+        historyList.appendChild(item);
+
+      } catch (err) {
+        // Show the error message in the output element so the user knows what went wrong
+        output.innerHTML = `Error: ${err.message}`;
+        console.error(`[${err.name}]`, err.message);
+
+      } finally {
+        // Runs whether the calculation succeeded or failed — useful for cleanup or analytics
+        console.log('Calculation attempt finished. Inputs preserved in form.');
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
